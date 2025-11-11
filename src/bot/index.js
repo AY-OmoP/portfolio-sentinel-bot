@@ -34,16 +34,16 @@ async function startBot() {
       });
 
     bot.start((ctx) => {
-      const welcomeMessage = `🤖 <b>Portfolio Sentinel</b>
+      const welcomeMessage = `🤖 <b>Portfolio Sentinel Active</b>
       
-🚀 Successfully deployed on Railway
-✅ 24/7 operation enabled
+🏗️ Robust Cloud Architecture
+⚡  Lightning-Fast Analysis
 
-<b>How to use:</b>
-• Send any Ethereum wallet address
-• Or use /portfolio <code>&lt;address&gt;</code>
+<b>Your Options:</b>
+🔹 Direct address submission
+🔹 /portfolio <code>&lt;command&gt;</code>
 
-<b>Example:</b>
+<b>Sample input:</b>
 <code>0x742d35Cc6634C0532925a3b844Bc454e4438f44e</code>`;
 
       ctx.reply(welcomeMessage, { parse_mode: "HTML" });
