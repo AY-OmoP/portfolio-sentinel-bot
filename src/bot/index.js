@@ -1,57 +1,33 @@
-require("dotenv").config();
 const { Telegraf } = require("telegraf");
 const { ethers } = require("ethers");
 
-// Debug: Check if environment variables are loaded
-console.log("🔧 Environment Check:");
-console.log(
-  "BOT_TOKEN length:",
-  process.env.BOT_TOKEN ? process.env.BOT_TOKEN.length : "MISSING"
-);
-console.log(
-  "ALCHEMY_API_KEY length:",
-  process.env.ALCHEMY_API_KEY ? process.env.ALCHEMY_API_KEY.length : "MISSING"
-);
-console.log(
-  "RAILWAY_ENVIRONMENT_NAME:",
-  process.env.RAILWAY_ENVIRONMENT_NAME || "Not set"
-);
+console.log("🚀 Starting Portfolio Sentinel Bot on Railway...");
 
-// Check if BOT_TOKEN exists - FIXED for Railway
-if (!process.env.BOT_TOKEN) {
-  console.error("❌ ERROR: BOT_TOKEN environment variable is missing!");
-  console.error("💡 Please set BOT_TOKEN in Railway Variables tab");
-  console.error("💡 Current environment:", process.env.NODE_ENV);
+// Get environment variables directly from Railway
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
+
+console.log("Environment Check:");
+console.log("- BOT_TOKEN exists:", !!BOT_TOKEN);
+console.log("- ALCHEMY_API_KEY exists:", !!ALCHEMY_API_KEY);
+console.log("- RAILWAY_ENVIRONMENT:", process.env.RAILWAY_ENVIRONMENT_NAME);
+
+if (!BOT_TOKEN) {
+  console.error(
+    "ERROR: BOT_TOKEN is required but not found in environment variables"
+  );
+  console.error("Please add BOT_TOKEN in Railway dashboard → Variables");
   process.exit(1);
 }
 
 try {
-  const bot = new Telegraf(process.env.BOT_TOKEN);
-  console.log("✅ Bot token is valid!");
-  console.log("🚀 Starting Portfolio Sentinel Bot on Railway...");
+  console.log("Initializing Telegram bot...");
+  const bot = new Telegraf(BOT_TOKEN);
 
-  // Start command
+  // Simple start command
   bot.start((ctx) => {
-    const welcomeMessage = `🤖 <b>Welcome to Portfolio Sentinel</b>
-
-🚀 Successfully deployed on Railway!
-✅ 24/7 operation enabled
-
-<b>Available Commands:</b>
-/portfolio <code>&lt;wallet_address&gt;</code> - Get portfolio summary
-/status - Check bot status
-/help - Show help guide
-
-<b>Example:</b>
-<code>/portfolio 0x742d35Cc6634C0532925a3b844Bc454e4438f44e</code>`;
-
-    ctx.reply(welcomeMessage, { parse_mode: "HTML" });
-  });
-
-  // Status command to check if bot is working
-  bot.command("status", (ctx) => {
     ctx.reply(
-      "✅ Portfolio Sentinel Bot is running on Railway!\n🟢 Status: Operational\n⏰ 24/7: Enabled"
+      "🎉 Portfolio Sentinel Bot is now live on Railway!\\n\\nUse /portfolio <address> to check wallet balances."
     );
   });
 
@@ -68,78 +44,30 @@ try {
     const walletAddress = messageParts[1];
 
     if (!ethers.isAddress(walletAddress)) {
-      return ctx.reply("❌ Invalid Ethereum address.");
+      return ctx.reply("❌ Invalid Ethereum address format.");
     }
 
-    const processingMsg = await ctx.reply("🔍 Scanning wallet on Railway...");
-
-    try {
-      // Simple response for now - we'll add real blockchain data next
-      const result = `<b>📊 Portfolio Summary</b>
-      
-<b>Wallet:</b> <code>${walletAddress}</code>
-<b>Status:</b> ✅ Bot deployed on Railway!
-<b>Environment:</b> ${process.env.RAILWAY_ENVIRONMENT_NAME || "Production"}
-
-<em>🔧 Real blockchain data coming in next update!</em>`;
-
-      await ctx.telegram.editMessageText(
-        ctx.chat.id,
-        processingMsg.message_id,
-        null,
-        result,
-        { parse_mode: "HTML" }
-      );
-    } catch (error) {
-      console.error("Portfolio command error:", error);
-      await ctx.telegram.editMessageText(
-        ctx.chat.id,
-        processingMsg.message_id,
-        null,
-        "❌ Error analyzing wallet. Please try again."
-      );
-    }
-  });
-
-  // Help command
-  bot.help((ctx) => {
     ctx.reply(
-      "Available commands:\n/start - Welcome\n/portfolio <address> - Portfolio summary\n/status - Bot status\n/help - This message"
+      `✅ Analyzing: ${walletAddress}\\n\\n🚀 Bot deployed on Railway!\\n💫 Real blockchain data coming soon!`
     );
   });
 
-  // Error handling
-  bot.catch((err, ctx) => {
-    console.error("Bot error:", err);
-    ctx.reply("❌ An error occurred. Please try again.");
+  // Status command
+  bot.command("status", (ctx) => {
+    ctx.reply("🟢 Status: Operational\\n🌐 Host: Railway\\n⏰ Uptime: 24/7");
   });
 
-  // Start the bot
-  bot
-    .launch()
-    .then(() => {
-      console.log("✅ Portfolio Sentinel Bot is now running on Railway!");
-      console.log("🤖 Bot username: @PortfolioSentinelBot");
-      console.log(
-        "🌐 Railway Environment:",
-        process.env.RAILWAY_ENVIRONMENT_NAME
-      );
-    })
-    .catch((error) => {
-      console.error("❌ Failed to start bot:", error);
-      process.exit(1);
-    });
+  console.log("Launching bot...");
 
-  // Enable graceful stop
-  process.once("SIGINT", () => {
-    console.log("🛑 Stopping bot gracefully...");
-    bot.stop("SIGINT");
+  bot.launch().then(() => {
+    console.log("✅ SUCCESS: Bot is now running on Railway!");
+    console.log("🤖 Bot: @PortfolioSentinelBot");
   });
-  process.once("SIGTERM", () => {
-    console.log("🛑 Stopping bot gracefully...");
-    bot.stop("SIGTERM");
-  });
+
+  // Graceful shutdown
+  process.once("SIGINT", () => bot.stop("SIGINT"));
+  process.once("SIGTERM", () => bot.stop("SIGTERM"));
 } catch (error) {
-  console.error("❌ Bot initialization failed:", error);
+  console.error("Bot startup failed:", error);
   process.exit(1);
 }
