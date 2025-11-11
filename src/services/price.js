@@ -1,0 +1,20 @@
+const axios = require('axios');
+
+class PriceService {
+  
+  // Get ETH price from CoinGecko
+  static async getETHPrice() {
+    try {
+      console.log('💰 Fetching ETH price...');
+      const response = await axios.get(
+        'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd'
+      );
+      return response.data.ethereum.usd;
+    } catch (error) {
+      console.error('Error fetching ETH price:', error);
+      return 1800; // Fallback price
+    }
+  }
+}
+
+module.exports = PriceService;
