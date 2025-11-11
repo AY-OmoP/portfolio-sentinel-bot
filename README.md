@@ -2,6 +2,25 @@
 
 A professional Telegram bot for tracking cryptocurrency portfolios across multiple blockchains. Get real-time portfolio data directly in Telegram without compromising security.
 
+## 🏗️ Architecture
+
+For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md)
+
+### High-Level Overview
+
+- **Frontend**: Telegram Messenger
+- **Backend**: Node.js + Telegraf Framework
+- **Blockchain**: Ethers.js + Alchemy API
+- **Data**: CoinGecko API for prices
+- **Infrastructure**: Railway deployment
+
+### Key Components
+
+- `src/bot/index.js` - Main bot entry point and command handlers
+- `src/services/blockchain.js` - Blockchain data interactions
+- `src/services/price.js` - Cryptocurrency price data
+- `config/constants.js` - Application configuration
+
 ## ✨ Features
 
 - 📊 **Multi-Chain Portfolio Tracking** - Ethereum, Polygon, BSC support
@@ -41,3 +60,16 @@ cp .env.example .env
 # Start the bot
 npm start
 ```
+
+## 🚀 Career Opportunities
+
+I'm actively seeking roles in:
+
+- Telegram Bot Development
+- Blockchain Integration
+- Backend Engineering
+- Web3 Applications
+
+**Let's connect:** (https://www.linkedin.com/in/ayotunde-omopariola)
+
+**Open to:** Full-time • https://wa.me/+2348059686329 • Freelance - https://latium.org/profile?welcome_id=z4dQoBAg/Emma-AY
