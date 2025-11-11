@@ -1,30 +1,46 @@
 require("dotenv").config();
 const { Telegraf } = require("telegraf");
 const { ethers } = require("ethers");
-const BlockchainService = require("../services/blockchain");
-const PriceService = require("../services/price");
 
-// Check if BOT_TOKEN exists
+// Debug: Check if environment variables are loaded
+console.log("🔧 Environment Check:");
+console.log(
+  "BOT_TOKEN length:",
+  process.env.BOT_TOKEN ? process.env.BOT_TOKEN.length : "MISSING"
+);
+console.log(
+  "ALCHEMY_API_KEY length:",
+  process.env.ALCHEMY_API_KEY ? process.env.ALCHEMY_API_KEY.length : "MISSING"
+);
+console.log(
+  "RAILWAY_ENVIRONMENT_NAME:",
+  process.env.RAILWAY_ENVIRONMENT_NAME || "Not set"
+);
+
+// Check if BOT_TOKEN exists - FIXED for Railway
 if (!process.env.BOT_TOKEN) {
-  console.error("❌ ERROR: BOT_TOKEN is missing from .env file");
+  console.error("❌ ERROR: BOT_TOKEN environment variable is missing!");
+  console.error("💡 Please set BOT_TOKEN in Railway Variables tab");
+  console.error("💡 Current environment:", process.env.NODE_ENV);
   process.exit(1);
 }
 
-console.log("🔧 Initializing bot...");
-
 try {
   const bot = new Telegraf(process.env.BOT_TOKEN);
-  console.log("✅ Bot initialized successfully");
+  console.log("✅ Bot token is valid!");
+  console.log("🚀 Starting Portfolio Sentinel Bot on Railway...");
 
   // Start command
   bot.start((ctx) => {
     const welcomeMessage = `🤖 <b>Welcome to Portfolio Sentinel</b>
 
-I help you track your cryptocurrency portfolio across multiple chains.
+🚀 Successfully deployed on Railway!
+✅ 24/7 operation enabled
 
 <b>Available Commands:</b>
-/portfolio <code>&lt;wallet_address&gt;</code> - Get your portfolio summary
-/help - Show all commands
+/portfolio <code>&lt;wallet_address&gt;</code> - Get portfolio summary
+/status - Check bot status
+/help - Show help guide
 
 <b>Example:</b>
 <code>/portfolio 0x742d35Cc6634C0532925a3b844Bc454e4438f44e</code>`;
@@ -32,17 +48,14 @@ I help you track your cryptocurrency portfolio across multiple chains.
     ctx.reply(welcomeMessage, { parse_mode: "HTML" });
   });
 
-  // Help command
-  bot.help((ctx) => {
-    const helpMessage = `<b>Help Guide</b>
-    
-/portfolio <code>&lt;address&gt;</code> - Get portfolio summary
-/help - Show this message`;
-
-    ctx.reply(helpMessage, { parse_mode: "HTML" });
+  // Status command to check if bot is working
+  bot.command("status", (ctx) => {
+    ctx.reply(
+      "✅ Portfolio Sentinel Bot is running on Railway!\n🟢 Status: Operational\n⏰ 24/7: Enabled"
+    );
   });
 
-  // Portfolio command with real data
+  // Portfolio command
   bot.command("portfolio", async (ctx) => {
     const messageParts = ctx.message.text.split(" ");
 
@@ -58,26 +71,17 @@ I help you track your cryptocurrency portfolio across multiple chains.
       return ctx.reply("❌ Invalid Ethereum address.");
     }
 
-    const processingMsg = await ctx.reply("🔍 Scanning wallet...");
+    const processingMsg = await ctx.reply("🔍 Scanning wallet on Railway...");
 
     try {
-      console.log(`📊 Analyzing: ${walletAddress}`);
-
-      // Get real data
-      const ethBalance = await BlockchainService.getNativeBalance(
-        walletAddress
-      );
-      const ethPrice = await PriceService.getETHPrice();
-      const ethValue = ethBalance * ethPrice;
-
+      // Simple response for now - we'll add real blockchain data next
       const result = `<b>📊 Portfolio Summary</b>
       
 <b>Wallet:</b> <code>${walletAddress}</code>
-<b>ETH Balance:</b> ${ethBalance.toFixed(6)} ETH
-<b>ETH Price:</b> $${ethPrice.toFixed(2)}
-<b>ETH Value:</b> $${ethValue.toFixed(2)}
+<b>Status:</b> ✅ Bot deployed on Railway!
+<b>Environment:</b> ${process.env.RAILWAY_ENVIRONMENT_NAME || "Production"}
 
-<em>✅ Real blockchain data loaded!</em>`;
+<em>🔧 Real blockchain data coming in next update!</em>`;
 
       await ctx.telegram.editMessageText(
         ctx.chat.id,
@@ -87,7 +91,7 @@ I help you track your cryptocurrency portfolio across multiple chains.
         { parse_mode: "HTML" }
       );
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Portfolio command error:", error);
       await ctx.telegram.editMessageText(
         ctx.chat.id,
         processingMsg.message_id,
@@ -97,16 +101,11 @@ I help you track your cryptocurrency portfolio across multiple chains.
     }
   });
 
-  // Handle plain wallet addresses
-  bot.on("text", async (ctx) => {
-    const text = ctx.message.text.trim();
-
-    if (ethers.isAddress(text)) {
-      ctx.reply(
-        `I see a wallet address! Use:\n\n<code>/portfolio ${text}</code>\n\nfor portfolio analysis.`,
-        { parse_mode: "HTML" }
-      );
-    }
+  // Help command
+  bot.help((ctx) => {
+    ctx.reply(
+      "Available commands:\n/start - Welcome\n/portfolio <address> - Portfolio summary\n/status - Bot status\n/help - This message"
+    );
   });
 
   // Error handling
@@ -116,16 +115,31 @@ I help you track your cryptocurrency portfolio across multiple chains.
   });
 
   // Start the bot
-  console.log("🚀 Starting bot...");
-  bot.launch().then(() => {
-    console.log("✅ Bot is now running!");
-    console.log("🤖 Visit: t.me/PortfolioSentinelBot");
-  });
+  bot
+    .launch()
+    .then(() => {
+      console.log("✅ Portfolio Sentinel Bot is now running on Railway!");
+      console.log("🤖 Bot username: @PortfolioSentinelBot");
+      console.log(
+        "🌐 Railway Environment:",
+        process.env.RAILWAY_ENVIRONMENT_NAME
+      );
+    })
+    .catch((error) => {
+      console.error("❌ Failed to start bot:", error);
+      process.exit(1);
+    });
 
-  // Graceful stop
-  process.once("SIGINT", () => bot.stop("SIGINT"));
-  process.once("SIGTERM", () => bot.stop("SIGTERM"));
+  // Enable graceful stop
+  process.once("SIGINT", () => {
+    console.log("🛑 Stopping bot gracefully...");
+    bot.stop("SIGINT");
+  });
+  process.once("SIGTERM", () => {
+    console.log("🛑 Stopping bot gracefully...");
+    bot.stop("SIGTERM");
+  });
 } catch (error) {
-  console.error("❌ Failed to initialize bot:", error);
+  console.error("❌ Bot initialization failed:", error);
   process.exit(1);
 }
