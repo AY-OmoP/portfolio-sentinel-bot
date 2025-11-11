@@ -37,7 +37,7 @@ async function startBot() {
       const welcomeMessage = `🤖 <b>Portfolio Sentinel Active</b>
       
 🏗️ Robust Cloud Architecture
-⚡  Lightning-Fast Analysis
+⚡ Lightning-Fast Analysis
 
 <b>Your Options:</b>
 🔹 Direct address submission
